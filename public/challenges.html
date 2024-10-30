@@ -3,20 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quizzy : Challenges</title>
+    <title>Challenges - Quizzy</title>
     <link rel="icon" type="image/x-icon" href="/images/favicon_white.ico">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <script src="script.js"></script>
     <style>
-      body{
-        justify-content: center;
-        margin: 0;
-        padding: 0;
-        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),url('Images/5066999.jpg');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-      }
+        body {
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('Images/5066999.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .challenge-container {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(36, 37, 42, 0.9);
+            border-radius: 20px;
+            margin: 20px auto;
+            width: 80%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+        }
+
+        .challenge-header {
+            margin-bottom: 20px;
+        }
+
+        .challenge-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .challenge-item {
+            background-color: rgba(23, 25, 33, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+
+        .challenge-item:hover {
+            background-color: rgba(23, 25, 33, 1);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -24,54 +67,42 @@
         <img class="nav_logo" src="images/quizzy_nav_white.png" alt="Quizzy">
         <nav>
             <ul class="nav_links">
+                <li><a href="index.html">HOME</a></li>
                 <li><a href="leaderboard.html">LEADERBOARD</a></li>
                 <li><a href="quizcode.html">CREATE QUIZ</a></li>
                 <li><a href="index.html#about_us">ABOUT US</a></li>
             </ul>
         </nav>
-        <a class="log_button" href="authentication.html"><button>CREATE CHALLENGE</button></a>
+        <a class="log_button" href="joinquiz.html"><button>JOIN QUIZ</button></a>
     </header>
-    <div class="heading"><h1>Explore World of <img src="Images/quizzy_nav_white.png"></h1></div>
-    <div class="quiz-challenge">
-        <div id="quizCards"></div>
+
+    <div class="challenge-container">
+        <div class="challenge-header">
+            <h2>Available Challenges</h2>
+            <p>Test your knowledge and compete with others!</p>
+        </div>
+
+        <ul class="challenge-list">
+            <li class="challenge-item">
+                <h3>Daily Trivia Challenge</h3>
+                <p>Challenge yourself with daily trivia questions.</p>
+                <a href="challenge-quiz.html?quizCode=DQ001"><button>JOIN CHALLENGE</button></a>
+            </li>
+            <li class="challenge-item">
+                <h3>Science Challenge</h3>
+                <p>Explore the wonders of science through this fun quiz.</p>
+                <a href="challenge-quiz.html?quizCode=DQ002"><button>JOIN CHALLENGE</button></a>
+            </li>
+            <li class="challenge-item">
+                <h3>History Challenge</h3>
+                <p>Test your knowledge of historical events and figures.</p>
+                <a href="challenge-quiz.html?quizCode=DQ003"><button>JOIN CHALLENGE</button></a>
+            </li>
+        </ul>
     </div>
+
     <footer>
         <p>Copyright &copy; 2024 Quizzy Company. All Rights Reserved</p>
     </footer>
-  
-    <script>
-      fetch('http://localhost:5000/api/challenges')
-        .then(response => response.json())
-        .then(challenges => {
-          const quizCardsContainer = document.getElementById('quizCards');
-
-          const sortedChallenges = challenges.sort((a, b) => {
-
-            if (a.quizCode === 'DQ001') return -1;
-            if (b.quizCode === 'DQ001') return 1;
-
-            return 0;
-          });
-
-          const filteredChallenges = sortedChallenges.filter(challenge => challenge.category.toLowerCase() !== 'private');
-
-          filteredChallenges.forEach(challenge => {
-            const card = document.createElement('div');
-            card.classList.add('quiz-card');
-            card.innerHTML = `
-              <h3>${challenge.title}</h3>
-              <p>Category: ${challenge.category}</p>
-              <p>No. of Questions: ${challenge.questions.length}</p>
-              <button onclick="startChallenge('${challenge.quizCode}')">Start Challenge</button>
-            `;
-            quizCardsContainer.appendChild(card);
-          });
-        })
-        .catch(error => console.error('Error fetching challenges:', error));
-
-      function startChallenge(quizCode) {
-        window.location.href = `challenge-quiz.html?quizCode=${quizCode}`;
-      }
-    </script>
 </body>
 </html>

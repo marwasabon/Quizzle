@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Quizzy</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon_white.ico">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="script.js"></script>
+    <style>
+        body {
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('Images/5066999.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .profile-container {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(36, 37, 42, 0.9);
+            border-radius: 20px;
+            margin: 20px auto;
+            width: 80%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+        }
+
+        .profile-header {
+            margin-bottom: 20px;
+        }
+
+        .profile-header img {
+            width: 100px;
+            border-radius: 50%;
+        }
+
+        .quiz-section {
+            margin-top: 20px;
+            background-color: rgba(23, 25, 33, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .quiz-section h3 {
+            margin-top: 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img class="nav_logo" src="images/quizzy_nav_white.png" alt="Quizzy">
+        <nav>
+            <ul class="nav_links">
+                <li><a href="challenges.html">CHALLENGES</a></li>
+                <li><a href="leaderboard.html">LEADERBOARD</a></li>
+                <li><a href="quizcode.html">CREATE QUIZ</a></li>
+                <li><a href="index.html#about_us">ABOUT US</a></li>
+            </ul>
+        </nav>
+        <a class="log_button" href="index.html"><button>EXIT</button></a>
+    </header>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <img src="images/default_avatar.png" alt="User Avatar">
+            <h2>John Doe</h2>
+            <p>Email: johndoe@example.com</p>
+            <p>College: Example College</p>
+            <p>Points: 1200</p>
+        </div>
+
+        <div class="quiz-section">
+            <h3>Quizzes Taken</h3>
+            <ul>
+                <li>General Knowledge Quiz</li>
+                <li>Science Trivia</li>
+                <li>History Challenge</li>
+            </ul>
+        </div>
+
+        <div class="quiz-section">
+            <h3>Quizzes Created</h3>
+            <ul>
+                <li>My First Quiz</li>
+                <li>Pop Culture Quiz</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <p>Copyright &copy; 2024 Quizzy Company. All Rights Reserved</p>
+    </footer>
+</body>
+</html>
