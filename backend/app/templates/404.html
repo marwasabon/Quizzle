@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Page Not Found{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-1 text-danger">404</h1>
+    <h2 class="mb-4" style = "Color : white ;">Oops! Page Not Found</h2>
+    <p class="lead" style = "Color : white ;">The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary mt-3">Go Back to Home</a>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        max-width: 600px;
+        padding: 20px;
+         border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-top: 300px;
+    }
+
+    .display-1 {
+        font-size: 6rem;
+    }
+
+    .text-danger {
+        color: #dc3545;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        border-radius: 20px;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+{% endblock %}

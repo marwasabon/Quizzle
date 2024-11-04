@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory
+from flask import Flask, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from .models.db_storage import DBStorage,db 
 from .models.user import User
@@ -27,6 +27,7 @@ def create_app():
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'main.login'  # Set the login view for Flask-Login
+    
     mail.init_app(app)
     
     @login_manager.user_loader
@@ -39,5 +40,8 @@ def create_app():
     CORS(app)
     app.register_blueprint(main_blueprint)
 
+    @app.errorhandler(404)
+    def not_found(error):
+        return render_template('404.html'), 404
     migrate = Migrate(app, db)
     return app

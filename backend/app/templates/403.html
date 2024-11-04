@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}403 - Forbidden{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-1 text-warning">403</h1>
+    <h2 class="mb-4" style = "Color : white ;">Forbidden</h2>
+    <p class="lead" style = "Color : white ;">You do not have permission to access this page.</p>
+    <a href="{{ url_for('main.home') }}" class="btn btn-primary mt-3">Go Back to Home</a>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        max-width: 600px;
+        padding: 20px;
+       /* background-color: white;8 */
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-top: 100px;
+    }
+
+    .display-1 {
+        font-size: 6rem;
+    }
+
+    .text-warning {
+        color: #ffc107;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        border-radius: 20px;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+</style>
+{% endblock %}

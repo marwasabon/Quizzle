@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center"  style="color: white;">User Management</h1>
+    <div class="d-flex justify-content-center mb-3">
+        <a href="{{ url_for('main.create_user') }}" class="btn btn-primary mx-2" style="color: white;">Add New User</a>
+        <a href="{{ url_for('main.list_roles') }}" class="btn btn-primary mx-2" style="color: white;">Roles</a>
+    </div>
+    <br>
+    <table class="table table-bordered table-striped"  style="color: white;">
+        <thead class="thead-dark">
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.first_name }}</td>
+                <td>{{ user.last_name }}</td>
+                <td>{{ user.role.name if user.role else "No Role" }}</td>
+                <td>
+                    <a href="{{ url_for('main.edit_user', user_id=user.id) }}" class="button edit-button">Edit</a>
+                    <a href="{{ url_for('main.delete_user', user_id=user.id) }}" class="button delete-button" onclick="return confirm('Are you sure?');">Delete</a>
+                </td>
+                
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <style>
+    body {
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/5066999.jpg') }}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: #fff;
+    }
+
+    .profile-container {
+        text-align: center;
+        padding: 20px;
+        background-color: rgba(36, 37, 42, 0.9);
+        border-radius: 20px;
+        margin: 20px auto;
+        width: 80%;
+        margin-top: 150px;
+        max-width: 600px; /* Added max-width */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    .profile-header {
+        margin-bottom: 80px;
+    }
+
+    .profile-header img {
+        width: 100px;
+        border-radius: 50%;
+    }
+
+    form {
+        margin-top: 20px; /* Added space before the form */
+    }
+
+    form div {
+        margin: 10px 0;
+    }
+
+    .form-control {
+        border-radius: 15px; /* Make inputs rounder */
+        width: 100%; /* Full width for better responsiveness */
+        max-width: 300px; /* Maximum width for inputs */
+    }
+
+    .quiz-section {
+        margin-top: 20px;
+        background-color: rgba(23, 25, 33, 0.8);
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .quiz-section h3 {
+        margin-top: 0;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.8em;
+    }
+    /* Base button styles */
+.button {
+    padding: 8px 16px;
+    border-radius: 4px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-block;
+    text-align: center;
+    transition: background-color 0.3s ease;
+}
+
+/* Yellow edit button */
+.edit-button {
+    background-color: #f0ad4e; /* Yellow */
+}
+
+.edit-button:hover {
+    background-color: #ec971f; /* Darker yellow on hover */
+}
+
+/* Red delete button */
+.delete-button {
+    background-color: #d9534f; /* Red */
+}
+
+.delete-button:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}
+
+</style>
+</div>
+
+{% endblock %}
