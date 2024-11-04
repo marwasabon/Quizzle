@@ -3,47 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Flask App{% endblock %}</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Discover. Learn. Quizzy</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Images/favicon_white.ico') }}">  
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <style>
+        body {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/5066999.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex; /* Use flexbox to center content */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            height: 100vh; /* Full viewport height */
+            margin: 0; /* Remove default margin */
+            flex-direction: column; /* Stack header and login container */
+        }
+
+        header {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the header */
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed; /* Fix the header to the top */
+            top: 0;
+            z-index: 1000; /* Keep the header on top */
+        }
+
+        .nav_links {
+            list-style-type: none; /* Remove bullet points from list */
+            padding: 0;
+            display: flex; /* Use flexbox for navigation */
+            margin: 0;
+        }
+
+        .nav_links li {
+            margin-right: 20px; /* Space between menu items */
+        }
+
+        .nav_links a {
+            color: white; /* Menu item color */
+            text-decoration: none; /* Remove underline */
+        }
+
+        .login-container {
+            background-color: rgba(26, 26, 31, 0.9); /* Slightly transparent background */
+            padding: 20px;
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Shadow for depth */
+            text-align: center; /* Center text */
+            width: 300px; /* Fixed width */
+            margin-top: 80px; /* Space from the header */
+        }
+
+        .auth {
+            font-size: 24px; /* Font size for login heading */
+            color: white; /* Heading color */
+            margin-bottom: 20px; /* Space below heading */
+        }
+
+        .form-group {
+            margin-bottom: 15px; /* Space between form fields */
+        }
+
+        .form-control {
+            border-radius: 15px; /* Rounded edges for input fields */
+            border: 1px solid #007bff; /* Border color */
+            padding: 10px; /* Padding inside input fields */
+            width: 100%; /* Full width */
+            transition: border-color 0.3s; /* Transition for border color */
+        }
+
+        .form-control:focus {
+            border-color: #0056b3; /* Darker border on focus */
+            outline: none; /* Remove outline */
+        }
+
+        .btn-primary {
+            background-color: #007bff; /* Bootstrap primary color */
+            border: none; /* Remove border */
+            border-radius: 15px; /* Rounded button */
+            padding: 10px 20px; /* Button padding */
+            cursor: pointer; /* Pointer cursor */
+            transition: background-color 0.3s; /* Transition for hover effect */
+            color: white; /* Text color */
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+
+        .alert-container {
+            position: fixed; /* Fix alert position */
+            top: 60px; /* Adjust position below the header */
+            width: 100%; /* Full width */
+            text-align: center; /* Center align alerts */
+            z-index: 1000; /* Keep alerts on top */
+        }
+
+        .alert {
+            margin: 10px 0; /* Space between alerts */
+            color: white; /* Alert text color */
+        }
+            .registration-container {
+                background-color: rgba(26, 26, 31, 0.9); /* Slightly transparent background */
+                padding: 20px;
+                border-radius: 15px; /* Rounded corners */
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Shadow for depth */
+                text-align: center; /* Center text */
+                width: 400px; /* Fixed width */
+                margin: 80px auto; /* Center vertically and horizontally */
+            }
+            .form-label {
+                color: white; /* Change the label font color */
+                display: block; /* Make labels block elements */
+                margin-bottom: 5px; /* Space below labels */
+            }
+        
+            .auth {
+                font-size: 24px; /* Font size for registration heading */
+                color: white; /* Heading color */
+                margin-bottom: 20px; /* Space below heading */
+            }
+        
+            .form-group {
+                margin-bottom: 15px; /* Space between form fields */
+            }
+        
+            .form-control {
+                border-radius: 15px; /* Rounded edges for input fields */
+                border: 1px solid #007bff; /* Border color */
+                padding: 10px; /* Padding inside input fields */
+                width: 100%; /* Full width */
+                transition: border-color 0.3s; /* Transition for border color */
+            }
+        
+            .form-control:focus {
+                border-color: #0056b3; /* Darker border on focus */
+                outline: none; /* Remove outline */
+            }
+        
+            .error-message {
+                color: red; /* Color for error messages */
+                font-size: 12px; /* Smaller font for error messages */
+            }
+        
+            .link {
+                color: white; /* Link color */
+                text-decoration: none; /* Remove underline */
+                margin-top: 15px; /* Space above the link */
+                display: inline-block; /* Center the link below the form */
+            }
+        
+            .btn-primary {
+                background-color: #007bff; /* Bootstrap primary color */
+                border: none; /* Remove border */
+                border-radius: 15px; /* Rounded button */
+                padding: 10px 20px; /* Button padding */
+                cursor: pointer; /* Pointer cursor */
+                transition: background-color 0.3s; /* Transition for hover effect */
+                color: white; /* Text color */
+            }
+        
+            .btn-primary:hover {
+                background-color: #0056b3; /* Darker shade on hover */
+            }
+            .logout-button {
+                color: #fff;
+                background-color: #d9534f; /* Red background */
+                padding: 8px 15px;
+                border-radius: 5px;
+                text-decoration: none;
+                font-weight: bold;
+            }
+            .logout_button {
+                margin-left: 20px;
+                padding: 9px 25px;
+                background-color: #ac3636;
+                border: none;
+                border-radius: 50px;
+                cursor: pointer;
+                transition: all 0.3s ease 0s;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+                font-weight: bold;
+            }
+            
+            .logout_button:hover {
+                background-color: #c9302c; /* Darker red on hover */
+            }            
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('main.home') }}">Flask App</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.register') }}">Register</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.login') }}">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
-                </li>
-            </ul>
-        </div>
+
+<header>
+    <img class="nav_logo" src="{{ url_for('static', filename='Images/quizzy_nav_white.png') }}" alt="Quizzy">
+    <nav>
+        <ul class="nav_links">
+            <li><a href="{{ url_for('main.home') }}">Home</a></li>
+
+            <li><a href="{{ url_for('main.challenges') }}">CHALLENGES</a></li>
+            <li><a href="{{ url_for('main.leaderboard') }}">LEADERBOARD</a></li>
+            <li><a href="{{ url_for('main.profile') }}">PROFILE</a></li>
+            <li><a href="{{ url_for('main.home') }}#about_us">ABOUT US</a></li>
+            <a class="log_button" href="{{ url_for('main.logout') }}" ><button style = "                background-color: #ac3636;
+                background-color: #ac3636;">LOGOUT</button></a>
+
+         </ul>
     </nav>
+    <a class="log_button" href="{{ url_for('main.list_users') }}"><button>ADMIN</button></a>
+</header>
 
-    <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-            {% if messages %}
-                <div class="alert-container">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
+ 
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            <div class="alert-container">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+   
+    {% block content %}
+    
+    {% endblock %}
+ 
 
-        {% block content %}
-        {% endblock %}
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+<br>
+<br>
+<br>
+<footer>
+    <p>Copyright &copy; 2024 Quizzy Company. All Rights Reserved</p>
+</footer>
 </html>

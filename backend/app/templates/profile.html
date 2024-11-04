@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <img src="{{ url_for('static', filename='Images/default_avatar.png') }}" alt="User Avatar">
+        <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.profile') }}">
+        {{ form.hidden_tag() }} <!-- Include CSRF token -->
+        <div>
+            <label for="first_name">First Name:</label>
+            {{ form.first_name(class="form-control", size=20) }} 
+            {% for error in form.first_name.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div>
+            <label for="last_name">Last Name:</label>
+            {{ form.last_name(class="form-control", size=20) }} 
+            {% for error in form.last_name.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            {{ form.email(class="form-control", size=20)}} 
+            {% for error in form.email.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.submit(class="btn btn-primary", label="Save Changes") }}
+        </div>
+    </form>
+
+    <div class="quiz-section">
+        <h3>Quizzes Taken</h3>
+        <ul>
+            {% for quiz in user.quizzes_taken %}
+                <li>{{ quiz.name }}</li>
+            {% else %}
+                <li>No quizzes taken yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="quiz-section">
+        <h3>Quizzes Created</h3>
+        <ul>
+            {% for quiz in user.quizzes_created %}
+                <li>{{ quiz.name }}</li>
+            {% else %}
+                <li>No quizzes created yet.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+<style>
+    body {
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/5066999.jpg') }}');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        color: #fff;
+    }
+
+    .profile-container {
+        text-align: center;
+        padding: 30px;
+        background-color: rgba(36, 37, 42, 0.9);
+        border-radius: 20px;
+        margin: 20px auto;
+        width: 80%;
+        margin-top: 655px;
+        max-width: 400px; /* Added max-width */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    .profile-header {
+        margin-bottom: 80px;
+    }
+
+    .profile-header img {
+        width: 100px;
+        border-radius: 50%;
+    }
+
+    form {
+        margin-top: 20px; /* Added space before the form */
+    }
+
+    form div {
+        margin: 10px 0;
+    }
+    .form-control {
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        background-color: #333;
+        color: #fff;
+        width: 100%;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .quiz-section {
+        margin-top: 20px;
+        background-color: rgba(23, 25, 33, 0.8);
+        border-radius: 20px;
+        padding: 20px;
+    }
+
+    .quiz-section h3 {
+        margin-top: 0;
+    }
+
+    .footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.8em;
+    }
+</style>
+
+{% endblock %}

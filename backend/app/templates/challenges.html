@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    <style>
+        body {
+            justify-content: center;
+            margin: 0;
+            padding: 0;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/5066999.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .challenge-container {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(36, 37, 42, 0.9);
+            border-radius: 20px;
+            margin: 20px auto;
+            width: 80%;
+            margin-top: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.9);
+        }
+
+        .challenge-header {
+            margin-bottom: 20px;
+        }
+
+        .challenge-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .challenge-item {
+            background-color: rgba(23, 25, 33, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+
+        .challenge-header {
+            margin-bottom: 20px;
+            margin-top: 10px; /* Adjust the margin-top to reduce space above */
+        }
+        .challenge-item:hover {
+            background-color: rgba(23, 25, 33, 1);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.8em;
+        }
+    </style>
+ 
+    <div class="challenge-container">
+        
+            <br>
+            <br>
+        <ul class="challenge-list">
+           
+            <li class="challenge-item">
+                <h3>Daily Trivia Challenge</h3>
+                <p>Challenge yourself with daily trivia questions.</p>
+                <a href="{{ url_for('main.start_quiz', category='general') }}" class="btn btn-primary">Start Quiz</a>
+
+             </li>
+            <li class="challenge-item">
+                <h3>Science Challenge</h3>
+                <p>Explore the wonders of science through this fun quiz.</p>
+                <a href="{{ url_for('main.start_quiz', category='science') }}" class="btn btn-primary">Start Quiz</a>
+
+             </li>
+            <li class="challenge-item">
+                <h3>History Challenge</h3>
+                <p>Test your knowledge of historical events and figures.</p>
+                <a href="{{ url_for('main.start_quiz', category='histroy') }}" class="btn btn-primary">Start Quiz</a>
+
+             </li>
+        </ul>
+    </div>
+
+    {% endblock %}
