@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz History{% endblock %}
+
+{% block content %}
+<style>
+/* Quiz History Table Styles */
+.container h1 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.table {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-collapse: collapse;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+.table thead {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.table thead th {
+    padding: 12px;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid #ddd;
+}
+
+.table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+.table tbody td {
+    padding: 12px;
+    text-align: center;
+    font-size: 14px;
+    border: 1px solid #ddd;
+}
+
+.table tbody td:first-child {
+    font-weight: 500;
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+}
+
+.table .total-success {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.table .total-failures {
+    color: #dc3545;
+    font-weight: bold;
+}
+/* Styling for Success and Failure */
+.success {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.failure {
+    color: #dc3545;
+    font-weight: bold;
+}
+</style>
+<div class="container mt-4">
+    <h1 class="text-center">Quiz History</h1>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Total Attempts</th>
+
+                <th>Status</th>
+                <th>Date Taken</th>
+                <th>Successes</th>
+                <th>Failures</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for quiz in user_quizzes %}
+            <tr>
+                <td>{{ quiz.topic }}</td>
+                <td>{{ quiz.total }}</td>
+                <td class="{% if quiz.success_rate >= 60 %}success{% else %}failure{% endif %}">
+                    {% if quiz.success_rate >= 60 %}Success{% else %}Failure{% endif %}
+                </td>
+                <td>{{ quiz.last_attempt_date.strftime('%Y-%m-%d %H:%M:%S') if quiz.last_attempt_date else 'N/A' }}</td>                <td>{{ quiz.success_count }}</td>
+                <td>{{ quiz.failure_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

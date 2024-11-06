@@ -1,11 +1,15 @@
-from flask import Blueprint, abort, json, jsonify, render_template, redirect, request, url_for, flash
+from mailbox import Message
+from flask import Blueprint, abort, current_app, json, jsonify, render_template, redirect, request, url_for, flash
 from flask_login import current_user, login_required, login_user, logout_user
+from flask_mail import Mail
+from itsdangerous import URLSafeTimedSerializer
 import requests
+from sqlalchemy import case
 from .models.role import Role
-
+from flask_mail import Message
 from .models.quizz import Quiz
-from . import db
-from .forms import ProfileForm, RegistrationForm, LoginForm, UserForm
+from . import db 
+from .forms import ProfileForm, RegistrationForm, LoginForm, ResetPasswordForm, UserForm
 from .models.user import User
 import os
 import json
@@ -13,9 +17,9 @@ import google.generativeai as genai
 import json
 import re
 main = Blueprint('main', __name__)
+mail = Mail()
 
 @main.route('/home')
-@login_required
 def home():
     return render_template('index.html')
 
@@ -452,3 +456,69 @@ def delete_user(user_id):
     db.session.commit()
     flash('User deleted successfully!', 'success')
     return redirect(url_for('main.list_users'))
+
+# Initialize the URLSafeTimedSerializer
+def get_serializer():
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+
+@main.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            s = get_serializer()
+            token = s.dumps(user.email, salt='password-reset-salt')
+            reset_url = url_for('main.reset_password', token=token, _external=True)
+            msg = Message('Password Reset Request', recipients=[email])
+            msg.body = f'Please click the link to reset your password: {reset_url}'
+            mail.send(msg)
+            flash('Password reset email sent.', 'success')
+        else:
+            flash('Email address not found.', 'error')
+    return render_template('forgot_password.html')
+    
+@main.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    form = ResetPasswordForm()  # Instantiate your form here
+    print(f"Received token: {token}")  # Debug: Print the received token
+    s = get_serializer()
+    try:
+        email = s.loads(token, salt='password-reset-salt', max_age=48*3600)  # Token valid for 1 hour
+    except:
+        flash('The password reset link is invalid or has expired.', 'error')
+        return redirect(url_for('main.forgot_password'))
+
+    if request.method == 'POST':
+        print(f"here  token: {token}")  # Debug2: Print the received token
+
+        user = User.query.filter_by(email=email).first()
+        password = request.form['password']
+        user.set_password(password)  #issue fixed
+        db.session.commit()
+        flash('Your password has been updated!', 'success')
+        return redirect(url_for('main.login'))
+
+    return render_template('reset_password.html',form=form, token=token)
+
+@main.route('/quiz_history/<int:user_id>')
+@login_required
+def quiz_history(user_id):
+    # Query all quizzes taken by the user
+ 
+    user_quizzes = (
+        db.session.query(
+            Quiz.topic,
+            db.func.count(Quiz.id).label('total'),
+            db.func.sum(case((Quiz.score > 0, 1), else_=0)).label('success_count'),
+            db.func.sum(case((Quiz.score == 0, 1), else_=0)).label('failure_count'),
+            (db.func.sum(case((Quiz.score > 0, 1), else_=0)) * 100.0 / db.func.count(Quiz.id)).label('success_rate'),
+            db.func.max(Quiz.date_attempted).label('last_attempt_date')  # Latest date per topic
+        )
+        .filter(Quiz.user_id == user_id)
+        .group_by(Quiz.topic)
+        .all()
+    )
+
+    
+    return render_template('quizz_history.html', user_quizzes=user_quizzes)
