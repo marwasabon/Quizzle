@@ -67,7 +67,7 @@ backend/ ├── app/ │ ├── init.py │ ├── models.py │ ├─
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/yourusername/quizzle.git
+   git clone https://github.com/marwasabon/quizzle.git
    cd quizzle
 
     Create and activate a virtual environment:
