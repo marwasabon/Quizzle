@@ -50,6 +50,11 @@ Quizzle is a dynamic and interactive quiz platform where users can challenge the
 - **APIs**: Gemini AI for dynamic quiz question generation
 - **Authentication**: Flask-Login
 - **Templating Engine**: Jinja2
+  
+## contributors 
+
+Emmanuel Asante Email:manuelasantempire@gmail.com
+Marwa Sabon : marwasabon@gmail.com
 
 ## Project Structure
 
