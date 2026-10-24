@@ -20,7 +20,7 @@ alembic
 flask-login
 flask-cors
 wtforms
-google-generativeai
+google-genai
 passlib
 gunicorn
 psycopg2-binary

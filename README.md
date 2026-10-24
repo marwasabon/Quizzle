@@ -87,9 +87,43 @@ If PowerShell activation is blocked, use the virtual environment directly instea
 
 ### Configure the database
 
-Create the `quizzle` database in MySQL and update the database URI in
-`backend/app/config.py` if necessary. The MySQL server must be running and
-reachable before starting the application.
+Create the `quizzle` database in MySQL and create a local `.env` file from
+`.env.example`. Set `DATABASE_URL` to the connection string for your MySQL
+server. The MySQL server must be running and reachable before starting the
+application. Do not commit `.env`.
+
+Gemini is optional. Set `GEMINI_API_KEY` in `.env` to use generated questions.
+If Gemini is unavailable, the application tries Ollama locally and then uses
+local default questions if Ollama is also unavailable.
+
+If a Gemini key was previously committed or shared, revoke it and create a new
+one before adding it to `.env`.
+
+### Optional: use Ollama for free local AI questions
+
+Install Ollama from <https://ollama.com/download>, then open PowerShell and
+download a local model:
+
+```powershell
+ollama pull gemma3:4b
+```
+
+Ollama normally runs at `http://127.0.0.1:11434`. If you use a different
+model or URL, update `OLLAMA_MODEL` or `OLLAMA_URL` in `.env`. The application
+uses this provider order:
+
+1. Gemini, when `GEMINI_API_KEY` is configured.
+2. Ollama, when the Ollama application is running and the configured model is installed.
+3. Built-in questions, which require no AI service.
+
+Keep Ollama running before generating a quiz question. You can test it with:
+
+```powershell
+ollama run gemma3:4b
+```
+
+The Ollama model runs on your computer and does not require billing or an API
+key. It does require available disk space and memory.
 
 From the repository root, change to the `backend` directory and create the
 tables from the SQLAlchemy models:

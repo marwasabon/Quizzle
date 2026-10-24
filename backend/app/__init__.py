@@ -11,7 +11,6 @@ from flask_cors import CORS
 from app.routes import main as main_blueprint;
 import os
 from app.config import Config  # Import the Config class
-import google.generativeai as genai
 
 mail = Mail()
 def create_app():
@@ -21,8 +20,6 @@ def create_app():
 # Configure the Gemini API using the loaded key
     app = Flask(__name__)
     app.config.from_object(Config)  # Apply configuration from Config class
-    genai.configure(api_key=app.config['GEMINI_API_KEY'])
-
     db.init_app(app)  # Initialize the global db instance with the app
     storage = DBStorage(db)
     login_manager = LoginManager()

@@ -13,7 +13,7 @@ from .forms import ProfileForm, RegistrationForm, LoginForm, ResetPasswordForm, 
 from .models.user import User
 import os
 import json
-import google.generativeai as genai
+from google import genai
 import json
 import re
 main = Blueprint('main', __name__)
@@ -120,13 +120,6 @@ generation_config = {
     "response_mime_type": "text/plain",
 }
 
-# Initialize the Gemini model
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    generation_config=generation_config,
-    system_instruction="pretend that you are a chat application, ask me questions related to SCIENCE with 4 options, only one is correct."
-)
-
 # Store active chat sessions
 chat_sessions = {}
 
@@ -178,6 +171,39 @@ def get_default_question(topic):
     return dict(question)
 
 
+def validate_question(question):
+    required_keys = {"question", "options", "correct_answer"}
+    if not isinstance(question, dict) or not required_keys.issubset(question):
+        raise ValueError("Generated question is missing required fields")
+    if not isinstance(question["options"], dict) or set(question["options"]) != {
+        "A", "B", "C", "D"
+    }:
+        raise ValueError("Generated question must contain four options")
+    if question["correct_answer"] not in question["options"]:
+        raise ValueError("Generated question has an invalid correct answer")
+    return question
+
+
+def generate_with_ollama(prompt):
+    response = requests.post(
+        f"{current_app.config['OLLAMA_URL'].rstrip('/')}/api/generate",
+        json={
+            "model": current_app.config["OLLAMA_MODEL"],
+            "prompt": prompt,
+            "format": "json",
+            "stream": False,
+        },
+        timeout=60,
+    )
+    response.raise_for_status()
+    response_data = response.json()
+    generated_text = response_data.get("response", "").strip()
+    response_json = extract_json(generated_text)
+    if not response_json:
+        raise ValueError("Ollama returned invalid JSON")
+    return validate_question(response_json[0])
+
+
 @main.route('/generate_question', methods=['POST'])
 def generate_question():
     user_id = 1 # Get user_id from the logged-in user
@@ -205,52 +231,57 @@ def generate_question():
     )
 
     try:
-        chat_session = model.start_chat(
-            history=[{"role": "user", "parts": [prompt]}]
+        api_key = current_app.config.get("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY is not configured")
+
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model=current_app.config["GEMINI_MODEL"],
+            contents=prompt,
+            config={
+                "temperature": generation_config["temperature"],
+                "top_p": generation_config["top_p"],
+                "top_k": generation_config["top_k"],
+                "max_output_tokens": generation_config["max_output_tokens"],
+                "response_mime_type": "application/json",
+            },
         )
-        response = chat_session.send_message("Generate the quiz question.")
-        cleaned_response_text = (
-            response.text.strip()
-            .replace("```json", "")
-            .replace("```", "")
-            .strip()
-        )
+        cleaned_response_text = response.text.strip()
         response_json = extract_json(cleaned_response_text)
         if response_json and isinstance(response_json[0], dict):
-            question = response_json[0]
-            required_keys = {"question", "options", "correct_answer"}
-            if required_keys.issubset(question):
-                chat_sessions[user_id] = chat_session
-                return jsonify(question)
-        raise ValueError("Gemini returned an invalid quiz structure")
+            question = validate_question(response_json[0])
+            chat_sessions[user_id] = LocalQuizSession(question)
+            return jsonify(question)
+        raise ValueError("Gemini returned invalid JSON")
     except Exception:
-        current_app.logger.exception(
-            "Gemini quiz generation failed; using the local default quiz."
-        )
+        current_app.logger.exception("Gemini quiz generation failed.")
+
+    try:
+        question = generate_with_ollama(prompt)
+        chat_sessions[user_id] = LocalQuizSession(question)
+        return jsonify(question)
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        current_app.logger.exception("Ollama quiz generation failed.")
 
     question = get_default_question(topic)
     chat_sessions[user_id] = LocalQuizSession(question)
     return jsonify(question)
 
 def extract_json(text_response):
-    # This pattern matches a string that starts with '{' and ends with '}'
-    pattern = r'\{[^{}]*\}'
-    matches = re.finditer(pattern, text_response)
+    decoder = json.JSONDecoder()
     json_objects = []
-
-    for match in matches:
-        json_str = match.group(0)
+    for start, character in enumerate(text_response):
+        if character != "{":
+            continue
         try:
-            # Validate if the extracted string is valid JSON
-            json_obj = json.loads(json_str)
+            json_obj, _ = decoder.raw_decode(text_response[start:])
             json_objects.append(json_obj)
+            break
         except json.JSONDecodeError:
-            continue  # Skip invalid JSON
+            continue
 
-    if json_objects:
-        return json_objects
-    else:
-        return None
+    return json_objects or None
 
 def extend_search(text, span):
     # Extend the search to try to capture nested structures
