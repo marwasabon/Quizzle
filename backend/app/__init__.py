@@ -2,6 +2,7 @@ from flask import Flask, render_template, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from .models.db_storage import DBStorage,db 
 from .models.user import User
+from .models.role import Role
 from flask_migrate import Migrate
 from flask_login import LoginManager ,UserMixin
 from flask_mail import Mail
@@ -44,4 +45,21 @@ def create_app():
     def not_found(error):
         return render_template('404.html'), 404
     migrate = Migrate(app, db)
+
+    @app.cli.command('seed-roles')
+    def seed_roles():
+        """Create the default application roles if they do not exist."""
+        db.create_all()
+        created_roles = []
+        for role_name in ('Admin', 'User'):
+            if db.session.query(Role).filter_by(name=role_name).first() is None:
+                db.session.add(Role(name=role_name))
+                created_roles.append(role_name)
+
+        db.session.commit()
+        if created_roles:
+            print(f"Created roles: {', '.join(created_roles)}")
+        else:
+            print('Default roles already exist.')
+
     return app

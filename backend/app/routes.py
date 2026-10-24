@@ -129,6 +129,55 @@ model = genai.GenerativeModel(
 
 # Store active chat sessions
 chat_sessions = {}
+
+DEFAULT_QUESTIONS = {
+    "science": {
+        "question": "What is the chemical symbol for water?",
+        "options": {"A": "H2O", "B": "O2", "C": "CO2", "D": "NaCl"},
+        "correct_answer": "A",
+    },
+    "history": {
+        "question": "Which ancient civilization built the pyramids at Giza?",
+        "options": {"A": "Romans", "B": "Egyptians", "C": "Vikings", "D": "Mayans"},
+        "correct_answer": "B",
+    },
+    "geography": {
+        "question": "What is the largest ocean on Earth?",
+        "options": {"A": "Atlantic", "B": "Indian", "C": "Pacific", "D": "Arctic"},
+        "correct_answer": "C",
+    },
+    "general": {
+        "question": "How many days are there in a leap year?",
+        "options": {"A": "365", "B": "366", "C": "364", "D": "367"},
+        "correct_answer": "B",
+    },
+}
+
+
+class LocalQuizSession:
+    def __init__(self, question):
+        self.question = question
+
+    def send_message(self, answer):
+        selected_answer = str(answer).strip().upper()
+        correct_answer = self.question["correct_answer"]
+        if selected_answer == correct_answer:
+            return type("LocalResponse", (), {
+                "text": "That's correct! The answer is "
+                f"{self.question['options'][correct_answer]}."
+            })()
+        return type("LocalResponse", (), {
+            "text": "That's incorrect. The correct answer is "
+            f"{correct_answer}: {self.question['options'][correct_answer]}."
+        })()
+
+
+def get_default_question(topic):
+    topic_key = str(topic).strip().lower()
+    question = DEFAULT_QUESTIONS.get(topic_key, DEFAULT_QUESTIONS["general"])
+    return dict(question)
+
+
 @main.route('/generate_question', methods=['POST'])
 def generate_question():
     user_id = 1 # Get user_id from the logged-in user
@@ -155,34 +204,33 @@ def generate_question():
         "}\n"
     )
 
-    chat_session = model.start_chat(
-        history=[
-            {
-                "role": "user",
-                "parts": [prompt],
-            },
-        ]
-    )
-    
-    chat_sessions[user_id] = chat_session
-    last_message = chat_session.history[-1]
+    try:
+        chat_session = model.start_chat(
+            history=[{"role": "user", "parts": [prompt]}]
+        )
+        response = chat_session.send_message("Generate the quiz question.")
+        cleaned_response_text = (
+            response.text.strip()
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
+        response_json = extract_json(cleaned_response_text)
+        if response_json and isinstance(response_json[0], dict):
+            question = response_json[0]
+            required_keys = {"question", "options", "correct_answer"}
+            if required_keys.issubset(question):
+                chat_sessions[user_id] = chat_session
+                return jsonify(question)
+        raise ValueError("Gemini returned an invalid quiz structure")
+    except Exception:
+        current_app.logger.exception(
+            "Gemini quiz generation failed; using the local default quiz."
+        )
 
-    response = chat_session.send_message("Generate the quiz question.")
-    raw_response_text = response.text
-    print("Raw response text from model:", raw_response_text)
-
-    # Clean the raw response text by removing the code block formatting
-    cleaned_response_text = raw_response_text.strip().replace('```json', '').replace('```', '').strip()
-    response_json = extract_json(cleaned_response_text)
-    print("Extracted JSON objects:", response_json)
-   
-    if cleaned_response_text and cleaned_response_text.startswith("{") and cleaned_response_text.endswith("}"):
-        return cleaned_response_text
-    else:
-        return jsonify({
-            "error": "Invalid response structure.",
-            "raw_response": cleaned_response_text
-        }), 500
+    question = get_default_question(topic)
+    chat_sessions[user_id] = LocalQuizSession(question)
+    return jsonify(question)
 
 def extract_json(text_response):
     # This pattern matches a string that starts with '{' and ends with '}'

@@ -63,45 +63,84 @@ backend/ ├── app/ │ ├── init.py │ ├── models.py │ ├─
 
 ### Prerequisites
 
-- Python 3.10+
-- Flask
-- SQLite (or PostgreSQL for production)
+- Python 3.10 or newer
+- MySQL Server
+- Access to the MySQL database configured in `backend/app/config.py`
+- A Gemini API key is optional. If Gemini is unavailable, the application uses local default quiz questions.
 
-### Installation
+### Windows PowerShell installation
 
-1. Clone the repository:
+From the repository root:
 
-   ```bash
-   git clone https://github.com/marwasabon/quizzle.git
-   cd quizzle
+```powershell
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
 
-    Create and activate a virtual environment:
+If PowerShell activation is blocked, use the virtual environment directly instead:
 
-python -m venv venv
-source venv/bin/activate
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
-Install dependencies:
+### Configure the database
 
-pip install -r requirements.txt
+Create the `quizzle` database in MySQL and update the database URI in
+`backend/app/config.py` if necessary. The MySQL server must be running and
+reachable before starting the application.
 
-Set up the database:
+From the repository root, change to the `backend` directory and create the
+tables from the SQLAlchemy models:
 
-flask db init
-flask db migrate
-flask db upgrade
+```powershell
+cd backend
+..\.venv\Scripts\python.exe -c "from app import create_app, db; app=create_app(); app.app_context().push(); db.create_all()"
+```
 
-Run the application:
+Seed the default roles required by registration and administrator access:
 
-    flask run
+```powershell
+..\.venv\Scripts\flask.exe --app "app:create_app" seed-roles
+```
 
-    Access the application at http://127.0.0.1:5000.
+The command creates `Admin` and `User` only when they do not already exist.
+
+### Run the application
+
+From the `backend` directory:
+
+```powershell
+..\.venv\Scripts\flask.exe --app "app:create_app" run
+```
+
+For debug mode:
+
+```powershell
+..\.venv\Scripts\flask.exe --app "app:create_app" --debug run
+```
+
+Open the application at <http://127.0.0.1:5000>.
+
+### Register and log in
+
+1. Open <http://127.0.0.1:5000/register>.
+2. Enter a username, email address, first name, last name, and password.
+3. Select a role. The default roles are `Admin` and `User`.
+4. Submit the registration form.
+5. Open <http://127.0.0.1:5000/login> and sign in with the new credentials.
+6. Open a quiz category and generate a question.
+
+The registration form requires an email address and validates the password
+confirmation. The account is stored in the MySQL `user` table.
 
 ### Usage
 
-    Login/Registration: Users can register and log in to access the quizzes.
-    Quizzes: Select a topic and start a quiz. Answer multiple-choice questions and get immediate feedback.
-    Profile: View your quiz history and performance insights.
-    Admin Panel: Manage users and roles (accessible only to users with the 'Admin' role).
+- **Quizzes:** Select a topic and answer multiple-choice questions.
+- **Fallback quizzes:** If the Gemini API is unavailable, built-in questions are used automatically.
+- **Profile:** View your quiz history and performance insights.
+- **Admin features:** Accounts assigned the `Admin` role can manage users and roles.
 
 ### API Endpoints
 
