@@ -31,7 +31,12 @@
                 <td>{{ user.role.name if user.role else "No Role" }}</td>
                 <td>
                     <a href="{{ url_for('main.edit_user', user_id=user.id) }}" class="button edit-button">Edit</a>
-                    <a href="{{ url_for('main.delete_user', user_id=user.id) }}" class="button delete-button" onclick="return confirm('Are you sure?');">Delete</a>
+                    {% if user.id != current_user.id %}
+                    <form method="POST" action="{{ url_for('main.delete_user', user_id=user.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure?');">
+                        {{ delete_form.hidden_tag() }}
+                        <button type="submit" class="button delete-button" style="border: none;">Delete</button>
+                    </form>
+                    {% endif %}
                 </td>
                 
                 

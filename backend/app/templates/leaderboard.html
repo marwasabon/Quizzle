@@ -120,8 +120,7 @@
               const response = await fetch(`/leaderboards?limit=${10 + loadedEntries}`);
               const data = await response.json();
 
-              data.sort((a, b) => b.points - a.points);
-
+              
               const leaderboardBody = document.getElementById('leaderboardBody');
               leaderboardBody.innerHTML = '';
 
@@ -129,18 +128,19 @@
                   const backgroundClass = index === 0 ? 'golden' : (index === 1 ? 'silver' : (index === 2 ? 'bronze' : 'other'));
                   const rankClass = `rank ${backgroundClass}-rank`;
 
-                  leaderboardBody.innerHTML += `
-                      <tr class="leaderboard-entry ${backgroundClass}">
-                          <td class="${rankClass}">${index + 1}</td>
-                          <td>${entry.username}</td>
-                          <td>${entry.fullname}</td>
-                           <td>${entry.points}</td>
-                      </tr>
-                  `;
+                  const row = document.createElement('tr');
+                  row.className = `leaderboard-entry ${backgroundClass}`;
+                  [index + 1, entry.username, entry.fullname, entry.points].forEach((value, column) => {
+                      const cell = document.createElement('td');
+                      if (column === 0) cell.className = rankClass;
+                      cell.textContent = value;
+                      row.appendChild(cell);
+                  });
+                  leaderboardBody.appendChild(row);
               });
 
               const loadMoreButton = document.getElementById('loadMoreButton');
-              loadMoreButton.style.display = (data.length >= 10) ? 'block' : 'none';
+              loadMoreButton.style.display = (data.length >= 10 + loadedEntries) ? 'block' : 'none';
           } catch (error) {
               console.error(error);
               alert('An error occurred while fetching leaderboard data.');

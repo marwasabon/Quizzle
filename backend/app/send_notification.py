@@ -1,18 +1,16 @@
-import requests
-from flask_mail import Mail, Message
-from flask import Flask 
-from flask import current_app as app
+from flask import current_app
 from flask_mail import Message
-from app import mail
-from .config import Config  # Import the Config class
+
+from . import mail
 
 
-  
- 
- # this is to unify the sending mails 
 def send_email(subject, recipients, text_body, html_body=None):
-    msg = Message(subject, sender=app.config['MAIL_USERNAME'], recipients=[recipients])
+    """Send an email through the app's configured Flask-Mail instance."""
+    if isinstance(recipients, str):
+        recipients = [recipients]
+    sender = current_app.config.get('MAIL_DEFAULT_SENDER') or current_app.config.get('MAIL_USERNAME')
+    msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body
     if html_body:
         msg.html = html_body
-        mail.send(msg)
+    mail.send(msg)

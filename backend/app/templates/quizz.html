@@ -5,12 +5,12 @@
 {% block content %}
 <div class="quiz-container">
     <h1>Quiz on <span id="topic-title"></span></h1>
-    <div id="flash-message" style="display: none;" class="flash-message"></div> <!-- Flash message area -->
-    
+    <div id="flash-message" style="display: none;" class="flash-message"></div>
+
     <form id="quiz-form">
-        <div id="questions-container"></div>
+        <div id="questions-container"><p>Loading question...</p></div>
         <div class="button-container">
-            <button type="button" id="save-quiz" class="btn btn-primary">Save Quiz</button>
+            <button type="button" id="submit-answer" class="btn btn-primary" disabled>Submit Answer</button>
             <button type="button" id="next-question" style="display: none;" class="btn btn-secondary">Next Question</button>
             <button type="button" id="cancel-quiz" class="btn btn-danger">Cancel</button>
         </div>
@@ -18,119 +18,112 @@
 </div>
 
 <script>
-    const topic = "{{ category }}";  // category as topic
-    const userId = "{{ user.id }}"; // Pass user ID from Flask
-    document.getElementById('topic-title').innerText = topic;
-    let correctAnswers = {}; 
-    let currentQuestionIndex = 0; // Track the current question index
+    const topic = {{ category|tojson }};
+    const submitButton = document.getElementById('submit-answer');
+    const nextButton = document.getElementById('next-question');
+    const flashMessageDiv = document.getElementById('flash-message');
+    document.getElementById('topic-title').textContent = topic;
 
-    function generateQuiz() {
+    function showFlashMessage(message, type) {
+        flashMessageDiv.textContent = message;
+        flashMessageDiv.className = 'flash-message ' + type;
+        flashMessageDiv.style.display = 'block';
+    }
+
+    function hideFlashMessage() {
+        flashMessageDiv.style.display = 'none';
+    }
+
+    function displayQuestion(data) {
+        const container = document.getElementById('questions-container');
+        container.replaceChildren();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'question';
+
+        const text = document.createElement('p');
+        text.textContent = data.question;
+        wrapper.appendChild(text);
+
+        ['A', 'B', 'C', 'D'].forEach(key => {
+            const label = document.createElement('label');
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'answer';
+            input.value = key;
+            label.appendChild(input);
+            label.append(' ' + data.options[key]);
+            wrapper.appendChild(label);
+            wrapper.appendChild(document.createElement('br'));
+        });
+
+        container.appendChild(wrapper);
+        submitButton.disabled = false;
+        nextButton.style.display = 'none';
+    }
+
+    function generateQuestion() {
+        hideFlashMessage();
+        submitButton.disabled = true;
+        nextButton.style.display = 'none';
         fetch('/generate_question', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ topic: topic, user_id: userId })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: topic })
         })
         .then(response => response.json())
         .then(data => {
             if (data.error) {
-                console.error(data.error);
+                showFlashMessage(data.error, 'danger');
+                nextButton.style.display = 'inline-block';
                 return;
             }
-            displayQuestions(data);
-            document.getElementById('next-question').style.display = 'inline-block'; // Show next question button
+            displayQuestion(data);
+        })
+        .catch(() => {
+            showFlashMessage('Could not load a question. Please try again.', 'danger');
+            nextButton.style.display = 'inline-block';
         });
     }
 
-    function displayQuestions(data) {
-        const container = document.getElementById('questions-container');
-
-        // If data is not an array, wrap it in an array
-        if (!Array.isArray(data)) {
-            data = [data]; // Wrap the single question object in an array
+    submitButton.addEventListener('click', function () {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if (!selected) {
+            showFlashMessage('Please select an answer.', 'warning');
+            return;
         }
+        submitButton.disabled = true;
 
-        // Clear previous questions
-        container.innerHTML = '';
-
-        data.forEach((question, index) => {
-            correctAnswers[`question${currentQuestionIndex}`] = question.correct_answer;
-
-            const questionHtml = `
-                <div class="question">
-                    <p>${question.question}</p>
-                    <label><input type="radio" name="question${currentQuestionIndex}" value="A"> ${question.options.A}</label><br>
-                    <label><input type="radio" name="question${currentQuestionIndex}" value="B"> ${question.options.B}</label><br>
-                    <label><input type="radio" name="question${currentQuestionIndex}" value="C"> ${question.options.C}</label><br>
-                    <label><input type="radio" name="question${currentQuestionIndex}" value="D"> ${question.options.D}</label>
-                </div>
-            `;
-            container.innerHTML += questionHtml;
-        });
-
-        currentQuestionIndex++; // Increment question index for the next question
-        document.getElementById('next-question').style.display = 'none'; // Hide next button initially
-    }
-
-    function calculateScore() {
-        let score = 0;
-        const userAnswer = document.querySelector(`input[name="question${currentQuestionIndex - 1}"]:checked`);
-        const correctAnswer = correctAnswers[`question${currentQuestionIndex - 1}`];
-
-        if (userAnswer) {
-            if (userAnswer.value === correctAnswer) {
-                score += 1; // Increment score for the correct answer
-                showFlashMessage("Correct! Great job!", "success");
-            } else {
-                showFlashMessage(`Incorrect! The correct answer was ${correctAnswer}.`, "danger");
-            }
-        } else {
-            showFlashMessage("Please select an answer.", "warning");
-        }
-
-        return score; // Return the total score
-    }
-
-    function showFlashMessage(message, type) {
-        const flashMessageDiv = document.getElementById('flash-message');
-        flashMessageDiv.innerText = message;
-        flashMessageDiv.className = type; // Add styling class based on type
-        flashMessageDiv.style.display = 'block';
-        document.getElementById('next-question').style.display = 'inline-block'; // Show the next button
-    }
-
-    document.getElementById('save-quiz').addEventListener('click', function() {
-        const score = calculateScore(); // Calculate score
-
-        fetch('/save_quiz', {
+        fetch('/submit_answer', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ user_id: userId, topic: topic, score: score })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ answer: selected.value })
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                alert('Quiz saved successfully!');
+            if (data.error) {
+                showFlashMessage(data.error, 'danger');
+            } else {
+                showFlashMessage(data.feedback, data.correct ? 'success' : 'danger');
+                document.querySelectorAll('input[name="answer"]').forEach(input => input.disabled = true);
             }
+            nextButton.style.display = 'inline-block';
+        })
+        .catch(() => {
+            showFlashMessage('Could not submit your answer. Please try again.', 'danger');
+            submitButton.disabled = false;
         });
     });
 
-    document.getElementById('next-question').addEventListener('click', function() {
-        generateQuiz(); // Fetch next question
-        document.getElementById('flash-message').style.display = 'none'; // Hide flash message
-    });
+    nextButton.addEventListener('click', generateQuestion);
 
-    document.getElementById('cancel-quiz').addEventListener('click', function() {
-        if (confirm('Are you sure you want to cancel? Your progress will not be saved.')) {
-            window.location.href = '/home'; // Redirect to home or wherever appropriate
+    document.getElementById('cancel-quiz').addEventListener('click', function () {
+        if (confirm('Are you sure you want to leave the quiz?')) {
+            window.location.href = '/home';
         }
     });
 
-    // Call generateQuiz when the page loads
-    window.onload = generateQuiz;
+    window.addEventListener('load', generateQuestion);
 </script>
 
 <style>
@@ -150,6 +143,10 @@
         padding: 10px; /* Padding around messages */
         border-radius: 5px; /* Rounded corners */
     }
+
+    .flash-message.success { background-color: #1e7e34; }
+    .flash-message.danger { background-color: #a71d2a; }
+    .flash-message.warning { background-color: #b58105; }
 
     .button-container {
         display: flex;

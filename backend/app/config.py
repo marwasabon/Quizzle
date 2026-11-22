@@ -12,7 +12,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "images")
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
-    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", secrets.token_hex(32))
     GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
     GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
     OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")

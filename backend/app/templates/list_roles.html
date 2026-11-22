@@ -21,7 +21,10 @@
                  <td>
                         
                     <a href="{{ url_for('main.edit_role', role_id=role.id) }}" class="button edit-button">Edit</a>
-                    <a href="{{ url_for('main.delete_role', role_id=role.id) }}" class="button delete-button" onclick="return confirm('Are you sure?');">Delete</a>
+                    <form method="POST" action="{{ url_for('main.delete_role', role_id=role.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure?');">
+                        {{ delete_form.hidden_tag() }}
+                        <button type="submit" class="button delete-button" style="border: none;">Delete</button>
+                    </form>
                 </td>
             </tr>
             {% endfor %}

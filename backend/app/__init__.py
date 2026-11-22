@@ -1,47 +1,51 @@
-from flask import Flask, render_template, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
-from .models.db_storage import DBStorage,db 
-from .models.user import User
-from .models.role import Role
-from flask_migrate import Migrate
-from flask_login import LoginManager ,UserMixin
-from flask_mail import Mail
-from flask_jwt_extended import JWTManager
+from flask import Flask, render_template
 from flask_cors import CORS
-from app.routes import main as main_blueprint;
-import os
-from app.config import Config  # Import the Config class
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_migrate import Migrate
+
+from .config import Config
+from .models import db
+from .models.quizz import PendingQuestion, Quiz  # noqa: F401  (register tables)
+from .models.role import Role
+from .models.user import User
 
 mail = Mail()
+login_manager = LoginManager()
+migrate = Migrate()
+
+
 def create_app():
-
-
- 
-# Configure the Gemini API using the loaded key
     app = Flask(__name__)
-    app.config.from_object(Config)  # Apply configuration from Config class
-    db.init_app(app)  # Initialize the global db instance with the app
-    storage = DBStorage(db)
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-    login_manager.login_view = 'main.login'  # Set the login view for Flask-Login
-    
+    app.config.from_object(Config)
+
+    db.init_app(app)
+    migrate.init_app(app, db)
     mail.init_app(app)
-    
+    CORS(app)
+
+    login_manager.init_app(app)
+    login_manager.login_view = 'main.login'
+
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
-    
+        return db.session.get(User, int(user_id))
 
-  
-    jwt = JWTManager(app)
-    CORS(app)
+    from .routes import main as main_blueprint
     app.register_blueprint(main_blueprint)
+
+    @app.errorhandler(403)
+    def forbidden(error):
+        return render_template('403.html'), 403
 
     @app.errorhandler(404)
     def not_found(error):
         return render_template('404.html'), 404
-    migrate = Migrate(app, db)
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        db.session.rollback()
+        return render_template('500.html'), 500
 
     @app.cli.command('seed-roles')
     def seed_roles():
@@ -49,7 +53,7 @@ def create_app():
         db.create_all()
         created_roles = []
         for role_name in ('Admin', 'User'):
-            if db.session.query(Role).filter_by(name=role_name).first() is None:
+            if Role.query.filter_by(name=role_name).first() is None:
                 db.session.add(Role(name=role_name))
                 created_roles.append(role_name)
 

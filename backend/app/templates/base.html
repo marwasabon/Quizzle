@@ -213,7 +213,9 @@
 
          </ul>
     </nav>
+    {% if current_user.is_authenticated and current_user.is_admin %}
     <a class="log_button" href="{{ url_for('main.list_users') }}"><button>ADMIN</button></a>
+    {% endif %}
 </header>
 
  
