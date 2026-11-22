@@ -46,7 +46,7 @@ Quizzle is a dynamic and interactive quiz platform where users can challenge the
 
 - **Backend**: Python, Flask
 - **Frontend**: HTML, CSS, Bootstrap, JavaScript
-- **Database**: SQLite (or PostgreSQL for production)
+- **Database**: MySQL (any SQLAlchemy-supported database via `DATABASE_URL`)
 - **APIs**: Gemini AI for dynamic quiz question generation
 - **Authentication**: Flask-Login
 - **Templating Engine**: Jinja2
@@ -58,7 +58,26 @@ Marwa Sabon : marwasabon@gmail.com
 
 ## Project Structure
 
-backend/ ├── app/ │ ├── init.py │ ├── models.py │ ├── routes/ │ │ ├── main.py │ │ └── auth.py │ ├── templates/ │ │ ├── base.html │ │ ├── login.html │ │ ├── register.html │ │ ├── profile.html │ │ ├── leaderboard.html │ │ ├── create_user.html │ │ └── edit_role.html │ └── static/ │ ├── css/ │ ├── js/ │ └── images/ ├── migrations/ ├── tests/ ├── config.py └── run.py
+```
+backend/
+├── app.py                  # Entry point (python app.py or flask --app "app:create_app" run)
+├── app/
+│   ├── __init__.py         # Application factory, extensions, error handlers, seed-roles command
+│   ├── config.py           # Settings loaded from .env
+│   ├── routes.py           # All routes (auth, quiz, leaderboard, profile, admin)
+│   ├── forms.py            # Flask-WTF forms
+│   ├── send_notification.py  # Email helper
+│   ├── models/
+│   │   ├── __init__.py     # Shared SQLAlchemy `db` object
+│   │   ├── user.py         # User
+│   │   ├── role.py         # Role
+│   │   └── quizz.py        # Quiz attempts and the pending (unanswered) question per user
+│   ├── templates/          # Jinja2 pages
+│   └── static/             # CSS, JavaScript, images
+└── migrations/             # Alembic migrations (Flask-Migrate)
+public/                     # Static HTML prototypes (not served by Flask)
+```
+
 ## Setup
 
 ### Prerequisites
@@ -160,11 +179,16 @@ Open the application at <http://127.0.0.1:5000>.
 ### Register and log in
 
 1. Open <http://127.0.0.1:5000/register>.
-2. Enter a username, email address, first name, last name, and password.
-3. Select a role. The default roles are `Admin` and `User`.
-4. Submit the registration form.
-5. Open <http://127.0.0.1:5000/login> and sign in with the new credentials.
-6. Open a quiz category and generate a question.
+2. Enter a username, email address, first name, last name, and password
+   (at least 8 characters).
+3. Submit the registration form. New accounts always get the `User` role.
+4. Open <http://127.0.0.1:5000/login> and sign in with the new credentials.
+5. Open a quiz category and generate a question.
+
+To create the first administrator, register normally and then assign the
+`Admin` role in the database (for example,
+`UPDATE user SET role_id = (SELECT id FROM role WHERE name = 'Admin') WHERE username = '<name>';`).
+After that, admins can change roles from the admin pages.
 
 The registration form requires an email address and validates the password
 confirmation. The account is stored in the MySQL `user` table.
@@ -178,18 +202,30 @@ confirmation. The account is stored in the MySQL `user` table.
 
 ### API Endpoints
 
-    User Management
-        GET /admin/users - List all users (Admin only)
-        POST /admin/users/create - Create a new user (Admin only)
-        POST /admin/users/edit/<user_id> - Edit a user (Admin only)
-        POST /admin/users/delete/<user_id> - Delete a user (Admin only)
+All quiz endpoints require a logged-in user and act on that user only.
 
-    Quiz Management
-        GET /start_quiz/<category> - Start a quiz based on the selected category
-        POST /submit_quiz - Submit quiz answers and get results
+    Quiz
+        GET  /start_quiz/<category>  - Quiz page for a topic
+        POST /generate_question      - {"topic"} -> a new question (the correct answer is kept on the server)
+        POST /submit_answer          - {"answer": "A".."D"} -> scores the answer, records it, returns feedback
 
     Leaderboard
-        GET /leaderboard - View the global leaderboard
+        GET /leaderboard             - Leaderboard page
+        GET /leaderboards?limit=N    - Top N users by total points (JSON, max 100)
+
+    Profile
+        GET/POST /profile            - View and edit your profile
+        GET /quiz_history/<user_id>  - Per-topic stats (your own, or any user for admins)
+
+    Administration (Admin role only)
+        GET       /admin/users                  - List users
+        GET/POST  /admin/users/create           - Create a user
+        GET/POST  /users/edit/<user_id>         - Edit a user (blank password keeps the current one)
+        POST      /users/delete/<user_id>       - Delete a user and their quiz history
+        GET       /admin/roles                  - List roles
+        GET/POST  /roles/create                 - Create a role
+        GET/POST  /roles/edit/<role_id>         - Rename a role
+        POST      /roles/delete/<role_id>       - Delete a role that no user has
 
 ### Database Structure
 Users Table
@@ -212,8 +248,15 @@ Quizzes Table
     id: Primary key
     user_id: Foreign key to Users table
     topic: Quiz topic (e.g., Science, History)
-    score: Quiz score
-    date_taken: Timestamp of when the quiz was taken
+    score: 1 for a correct answer, 0 otherwise
+    date_attempted: Timestamp of the attempt
+
+Pending Questions Table
+
+    user_id: Primary key and foreign key to Users table
+    topic: Topic of the question
+    payload: JSON with the question, options, and correct answer
+    created_at: When the question was generated
 
 Future Improvements
 
