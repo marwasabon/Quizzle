@@ -18,7 +18,7 @@
 </div>
 
 <script>
-    const topic = {{ category|tojson }};
+    const topic = document.querySelector('.quiz-container').dataset.topic;
     const submitButton = document.getElementById('submit-answer');
     const nextButton = document.getElementById('next-question');
     const flashMessageDiv = document.getElementById('flash-message');
